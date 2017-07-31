@@ -1,0 +1,14 @@
+{
+  "name": "mxaws",
+  "version": "1.0.0",
+  "description": "A collection of wrappers simplifying calls from the AWS JS SDK",
+  "main": "mxaws.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Frank Camilleri",
+  "dependencies": {
+    "aws-sdk": "^2.92.0",
+    "nconf": "^0.8.4"
+  }
+}
