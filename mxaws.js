@@ -34,7 +34,7 @@ exports.mxaws = class mxaws {
 
     //TODO: There may be a bug here due to an possible extremely recent change in the API
     static waitForRDSInstanceAvailable(identifier){
-        //yes you read that right. dB.
+        //yes you read that right. dB. little d big B.
         return RDS.waitFor("dBInstanceAvailable",{"DBInstanceIdentifier":identifier}).promise();
     }
 
