@@ -1,7 +1,7 @@
 #     MXAWS
 #### Basic Work-In-Progress wrapper/programmatic auto-authenticator for AWS functionlity using the AWS JS SDK in Nodejs.
 
-This code is a work in progress, but will be maintained to be as stable as possible, considering that many, many things will depend on it.
+This code is a work in progress, but will be maintained to be as stable as possible, considering that many, many things internally already depend on it.
 
 NOTE: this is currently NOT compatible with browser-side JS -- totally down to entertain it in the future.
 
