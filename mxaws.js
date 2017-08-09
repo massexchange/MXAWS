@@ -138,7 +138,7 @@ exports.mxaws = class mxaws {
         return Promise.all(promiseArray);
     }
 
-    static async statusEC2(targetName, isEnvironment) => {
+    static async statusEC2(targetName, isEnvironment){
         if (Array.isArray(targetName))
             return await Promise.all(targetName.map(name => this.statusEC2(name, isEnvironment)));
 
@@ -165,7 +165,7 @@ exports.mxaws = class mxaws {
         });
     };
 
-    static async statusRDS(targetDB) => {
+    static async statusRDS(targetDB){
 
         if (Array.isArray(targetDB))
             return await Promise.all(targetDB.map(db => statusRDS(db)));
