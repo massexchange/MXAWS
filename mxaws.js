@@ -132,9 +132,55 @@ exports.mxaws = class mxaws {
     }
 
     static async resizeEC2InstancesByInstanceIdArray(instanceIdArray, size){
-        let promiseArray = instanceIdArray.map(instanceId => this.resizeEC2Instance(instanceId, size));
+        let promiseArray =
+            instanceIdArray.map(instanceId => this.resizeEC2Instance(instanceId, size));
+
         return Promise.all(promiseArray);
     }
+
+    static async statusEC2(targetName, isEnvironment) => {
+        if (Array.isArray(targetName))
+            return await Promise.all(targetName.map(name => this.statusEC2(name, isEnvironment)));
+
+        const data = (isEnvironment
+            ? await this.getEC2InstancesByEnvironment([targetName])
+            : await this.getEC2InstanceByName(targetName))
+                .Reservations.map(res => res.Instances[0]);
+
+        const activeInstances = data.filter(datum => datum.State.Name != "terminated");
+
+        return activeInstances.map(inst => {
+            let instName = inst.Tags.filter(tag => tag.Key == "Name")[0].Value;
+            let instApp = inst.Tags.filter(tag => tag.Key == "Application")[0].Value;
+            let instEnv = inst.Tags.filter(tag => tag.Key == "Environment")[0].Value;
+            return {
+                InstanceName:       instName,
+                InstanceState:      inst.State.Name,
+                InstanceApplication:(instApp ? instApp : "db"),
+                InstanceEnvironment:instEnv,
+                InstanceAddress:    inst.PublicIpAddress,
+                InstanceSize:       inst.InstanceType,
+                InstanceId:         inst.InstanceId
+            };
+        });
+    };
+
+    static async statusRDS(targetDB) => {
+
+        if (Array.isArray(targetDB))
+            return await Promise.all(targetDB.map(db => statusRDS(db)));
+
+        const data = (await this.getRDSInstance(targetDB));
+        const dbs = data.DBInstances;
+        return dbs.map(db => {
+            return {
+                InstanceName:       db.DBInstanceIdentifier,
+                InstanceState:      db.DBInstanceStatus,
+                InstanceAddress:    db.Endpoint.Address,
+                InstanceSize:       db.DBInstanceClass,
+            };
+        });
+    };
 
 };
 
