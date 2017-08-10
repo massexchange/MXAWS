@@ -7,6 +7,8 @@ const awsRegion = nconf.env().get("awsRegion");
 
 if (!(awsId && awsKey && awsRegion)){
     console.log("AWS Credential Environment Variables are missing or malformed.");
+    console.log(`Please ensure that "awsAccessKeyId", "awsSecretAccessKey", and "awsRegion"`);
+    console.log("are defined correctly wherever you define your environment variables.");
     console.log("Exiting.");
     process.exit(1);
 }
