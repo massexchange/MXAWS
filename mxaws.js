@@ -183,7 +183,10 @@ exports.mxaws = class mxaws {
             };
         });
     };
-
 };
+
+exports.mxCodeDeploy = class mxCodeDeploy {
+
+}
 
 return exports;
