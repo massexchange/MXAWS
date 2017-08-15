@@ -188,7 +188,7 @@ exports.mxaws = class mxaws {
 
 exports.mxCodeDeploy = class mxCodeDeploy {
 
-    static getDeploymentGroupData = (appName, groupName) => {
+    static getDeploymentGroupData(appName, groupName) => {
         let getGroupParams = {
             applicationName: appName,
             deploymentGroupName: groupName
@@ -196,7 +196,7 @@ exports.mxCodeDeploy = class mxCodeDeploy {
         return CodeDeploy.getDeploymentGroup(getGroupParams).promise();
     };
 
-    static updateDeploymentGroupFilter = (appName, depGroup, ec2TagFilterArray) => {
+    static updateDeploymentGroupFilter(appName, depGroup, ec2TagFilterArray) => {
         let updateGroupCallParams = {
             applicationName: appName,
             currentDeploymentGroupName: depGroup,
