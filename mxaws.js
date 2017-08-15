@@ -196,7 +196,7 @@ exports.mxCodeDeploy = class mxCodeDeploy {
         return CodeDeploy.getDeploymentGroup(getGroupParams).promise();
     };
 
-    static updateDeploymentGroupFilter(appName, depGroup, ec2TagFilterArray){
+    static updateDeploymentGroupFilter(appName, groupName, ec2TagFilterArray){
         const updateGroupCallParams = {
             applicationName: appName,
             currentDeploymentGroupName: depGroup,
@@ -204,6 +204,19 @@ exports.mxCodeDeploy = class mxCodeDeploy {
         };
         return CodeDeploy.updateDeploymentGroup(updateGroupCallParams).promise();
     };
+
+    static async deployDeploymentGroup(appName, groupName, deploymentRevision){
+        const deployParams = {
+            applicationName: appName,
+            deploymentGroupName: groupName,
+            revision:  deploymentRevision
+        };
+        const deployment = await CodeDeploy.createDeployment(deployParams).promise();
+        console.log(`Starting deployment of ${appName} to ${groupName}...`);
+        await CodeDeploy.waitFor("deploymentSuccessful", deploymentParams).promise();
+        return deployment;
+    };
+
 }
 
 return exports;
