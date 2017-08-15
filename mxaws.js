@@ -21,6 +21,7 @@ const AWSConfig = new AWS.Config({
 
 const EC2 = new AWS.EC2(AWSConfig);
 const RDS = new AWS.RDS(AWSConfig);
+const CodeDeploy = new AWS.CodeDeploy(AWSConfig);
 
 exports.mxaws = class mxaws {
 
@@ -187,6 +188,22 @@ exports.mxaws = class mxaws {
 
 exports.mxCodeDeploy = class mxCodeDeploy {
 
+    const getDeploymentGroupData = (appName, groupName) => {
+        let getGroupParams = {
+            applicationName: appName,
+            deploymentGroupName: groupName
+        };
+        return CodeDeploy.getDeploymentGroup(getGroupParams).promise();
+    };
+
+    const updateDeploymentGroupFilter = (appName, depGroup, ec2TagFilterArray) => {
+        let updateGroupCallParams = {
+            applicationName: appName,
+            currentDeploymentGroupName: depGroup,
+            ec2TagFilters: ec2TagFilterArray,
+        };
+        return CodeDeploy.updateDeploymentGroup(updateGroupCallParams).promise();
+    };
 }
 
 return exports;
