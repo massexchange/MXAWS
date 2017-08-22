@@ -211,6 +211,7 @@ exports.mxCodeDeploy = class mxCodeDeploy {
             deploymentGroupName: groupName,
             revision:  deploymentRevision
         };
+        console.log(`Starting deployment of ${appName} to ${groupName}...`);
         return await CodeDeploy.createDeployment(deployParams).promise();
         // console.log(`Starting deployment of ${appName} to ${groupName}...`);
         // await CodeDeploy.waitFor("deploymentSuccessful", deployment).promise()
