@@ -199,7 +199,7 @@ exports.mxCodeDeploy = class mxCodeDeploy {
     static updateDeploymentGroupFilter(appName, groupName, ec2TagFilterArray){
         const updateGroupCallParams = {
             applicationName: appName,
-            currentDeploymentGroupName: depGroup,
+            currentDeploymentGroupName: groupName,
             ec2TagFilters: ec2TagFilterArray,
         };
         return CodeDeploy.updateDeploymentGroup(updateGroupCallParams).promise();
