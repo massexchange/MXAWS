@@ -220,7 +220,7 @@ exports.mxCodeDeploy = class mxCodeDeploy {
 
     static waitForDeploymentSuccessfulAndGetAnyErrors(deployment){
         return CodeDeploy.waitFor("deploymentSuccessful", deployment).promise()
-        .catch(err => {
+        .catch(async err => {
 
             const listInstData =
                 await CodeDeploy.listDeploymentInstances(deployment).promise();
