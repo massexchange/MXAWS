@@ -230,7 +230,7 @@ exports.mxCodeDeploy = class mxCodeDeploy {
                 Object.assign({instanceIds: listInstData.instancesList}, deployment);
 
             const info = await CodeDeploy.batchGetDeploymentInstances(getDepInstancesParams).promise();
-            info.instancesSummary[0].lifecycleEvents;
+            console.log(info.instancesSummary[0].lifecycleEvents);
         });
     }
 
