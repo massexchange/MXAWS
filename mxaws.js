@@ -211,11 +211,11 @@ exports.mxCodeDeploy = class mxCodeDeploy {
             deploymentGroupName: groupName,
             revision:  deploymentRevision
         };
-        const deployment = await CodeDeploy.createDeployment(deployParams).promise();
-        console.log(`Starting deployment of ${appName} to ${groupName}...`);
-        await CodeDeploy.waitFor("deploymentSuccessful", deployment).promise()
-        .catch(err => console.log(err));
-        return deployment;
+        return await CodeDeploy.createDeployment(deployParams).promise();
+        // console.log(`Starting deployment of ${appName} to ${groupName}...`);
+        // await CodeDeploy.waitFor("deploymentSuccessful", deployment).promise()
+        // .catch(err => console.log(err));
+        // return deployment;
     };
 
     static waitForDeploymentSuccessfulAndGetAnyErrors(deployment){
