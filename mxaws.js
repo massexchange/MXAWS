@@ -213,7 +213,7 @@ exports.mxCodeDeploy = class mxCodeDeploy {
         };
         const deployment = await CodeDeploy.createDeployment(deployParams).promise();
         console.log(`Starting deployment of ${appName} to ${groupName}...`);
-        await CodeDeploy.waitFor("deploymentSuccessful", deploymentParams).promise();
+        await CodeDeploy.waitFor("deploymentSuccessful", deployment).promise();
         return deployment;
     };
 
