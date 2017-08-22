@@ -213,9 +213,24 @@ exports.mxCodeDeploy = class mxCodeDeploy {
         };
         const deployment = await CodeDeploy.createDeployment(deployParams).promise();
         console.log(`Starting deployment of ${appName} to ${groupName}...`);
-        await CodeDeploy.waitFor("deploymentSuccessful", deployment).promise();
+        await CodeDeploy.waitFor("deploymentSuccessful", deployment).promise()
+        .catch(err => console.log(err));
         return deployment;
     };
+
+    static waitForDeploymentSuccessfulAndGetAnyErrors(deployment){
+        return CodeDeploy.waitFor("deploymentSuccessful", deployment).promise()
+        .catch(err => {
+
+            const listInstData =
+                await CodeDeploy.listDeploymentInstances(deployment).promise();
+
+            const getDepInstancesParams =
+                Object.assign({instanceIds: listInstData.instancesList}, deployment);
+
+            console.log(await CodeDeploy.batchGetDeploymentInstances(getDepInstancesParams));
+        });
+    }
 
 }
 
