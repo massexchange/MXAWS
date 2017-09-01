@@ -23,7 +23,7 @@ const EC2 = new AWS.EC2(AWSConfig);
 const RDS = new AWS.RDS(AWSConfig);
 const CodeDeploy = new AWS.CodeDeploy(AWSConfig);
 
-exports.mxaws = class mxaws {
+const mxaws = exports.mxaws = class mxaws {
 
     static delay(secs){return new Promise((resolve) => setTimeout(resolve, secs*1000));}
 
@@ -184,9 +184,14 @@ exports.mxaws = class mxaws {
             };
         });
     };
+
+    static mapEC2InstanceIdToName(instId, EC2StatusArray) {
+        const targetInstance = EC2StatusArray.filter(inst => inst.InstanceId == instId)[0];
+        return targetInstance.InstanceName;
+    };
 };
 
-exports.mxCodeDeploy = class mxCodeDeploy {
+const mxCodeDeploy = exports.mxCodeDeploy = class mxCodeDeploy {
 
     static getDeploymentGroupData(appName, groupName){
         const getGroupParams = {
@@ -213,15 +218,16 @@ exports.mxCodeDeploy = class mxCodeDeploy {
         };
         console.log(`Starting deployment of ${appName} to ${groupName}...`);
         return await CodeDeploy.createDeployment(deployParams).promise();
-        // console.log(`Starting deployment of ${appName} to ${groupName}...`);
-        // await CodeDeploy.waitFor("deploymentSuccessful", deployment).promise()
-        // .catch(err => console.log(err));
-        // return deployment;
     };
 
     static waitForDeploymentSuccessfulAndGetAnyErrors(deployment){
+
+        //TODO: FRANK YOU WERE HERE. TRY/CATCH/FINALLY this shit.
         return CodeDeploy.waitFor("deploymentSuccessful", deployment).promise()
         .catch(async err => {
+            if (err.code != "ResourceNotReady"){
+                return err;
+            }
 
             const listInstData =
                 await CodeDeploy.listDeploymentInstances(deployment).promise();
@@ -230,9 +236,47 @@ exports.mxCodeDeploy = class mxCodeDeploy {
                 Object.assign({instanceIds: listInstData.instancesList}, deployment);
 
             const info = await CodeDeploy.batchGetDeploymentInstances(getDepInstancesParams).promise();
-            console.log(info.instancesSummary[0].lifecycleEvents);
+
+            const failsByInstance =
+                info.instancesSummary
+                    .filter(instSummary => instSummary.status = "Failed")
+                    .map(instSummary => {
+                        const badEvents =
+                            instSummary.lifecycleEvents
+                                .filter(event => event.status != "Succeeded")
+
+                        return {
+                            InstanceId: instSummary.instanceId.split("/")[1],
+                            FailedEvents: badEvents
+                        }
+                    });
+
+            const EC2StatusArray = await mxaws.statusEC2();
+
+            const simplifiedFailsByInstance = failsByInstance.map(failSummary => {
+                return {
+                    InstanceName:
+                        (mxaws.mapEC2InstanceIdToName(failSummary.InstanceId, EC2StatusArray)),
+                    FailedEvents: failSummary.FailedEvents.map(event => {
+                        let retVal = {
+                            EventName: event.lifecycleEventName,
+                            EventStatus: event.status
+                        };
+                        if (event.status == "Failed"){
+                            retVal.StartTime = event.startTime;
+                            retVal.EndTime = event.endTime;
+                            retVal.ErrorCode = event.diagnostics.errorCode;
+                            retVal.FailedScript = event.diagnostics.scriptName;
+                            retVal.FailMessage = event.diagnostics.message;
+                            retVal.LogTail = event.diagnostics.logTail.split("\n");
+                        }
+                        return retVal;
+                    })
+                };
+            });
+            return simplifiedFailsByInstance;
         });
-    }
+    };
 
 }
 
