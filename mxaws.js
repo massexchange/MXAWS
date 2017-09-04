@@ -277,6 +277,7 @@ const mxCodeDeploy = exports.mxCodeDeploy = class mxCodeDeploy {
         console.log("Deployment Errors:");
         simplifiedFailsByInstance.forEach(err => {
             console.log(`Instance: ${err.InstanceName}`);
+            console.log("------------------------------")
             err.FailedEvents.forEach(event => console.log(event));
         });
     }
