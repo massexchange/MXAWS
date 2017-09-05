@@ -185,7 +185,7 @@ const mxaws = exports.mxaws = class mxaws {
         });
     };
 
-    static mapEC2InstanceIdToName(instId, EC2StatusArray) {
+    static getInstNameFromEC2Status(instId, EC2StatusArray) {
         const targetInstance = EC2StatusArray.filter(inst => inst.InstanceId == instId)[0];
         return targetInstance.InstanceName;
     };
@@ -252,7 +252,7 @@ const mxCodeDeploy = exports.mxCodeDeploy = class mxCodeDeploy {
         const simplifiedFailsByInstance = failsByInstance.map(failSummary => {
             return {
                 InstanceName:
-                    (mxaws.mapEC2InstanceIdToName(failSummary.InstanceId, EC2StatusArray)),
+                    (mxaws.getInstNameFromEC2Status(failSummary.InstanceId, EC2StatusArray)),
                 FailedEvents: failSummary.FailedEvents.map(event => {
                     let retVal = {
                         EventName: event.lifecycleEventName,
