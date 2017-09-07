@@ -21,8 +21,9 @@ const AWSConfig = new AWS.Config({
 
 const EC2 = new AWS.EC2(AWSConfig);
 const RDS = new AWS.RDS(AWSConfig);
+const CodeDeploy = new AWS.CodeDeploy(AWSConfig);
 
-exports.mxaws = class mxaws {
+const mxaws = exports.mxaws = class mxaws {
 
     static delay(secs){return new Promise((resolve) => setTimeout(resolve, secs*1000));}
 
@@ -184,6 +185,103 @@ exports.mxaws = class mxaws {
         });
     };
 
+    static getInstNameFromEC2Status(instId, EC2StatusArray) {
+        const targetInstance = EC2StatusArray.filter(inst => inst.InstanceId == instId)[0];
+        return targetInstance.InstanceName;
+    };
 };
+
+const mxCodeDeploy = exports.mxCodeDeploy = class mxCodeDeploy {
+
+    static getDeploymentGroupData(appName, groupName){
+        const getGroupParams = {
+            applicationName: appName,
+            deploymentGroupName: groupName
+        };
+        return CodeDeploy.getDeploymentGroup(getGroupParams).promise();
+    };
+
+    static updateDeploymentGroupFilter(appName, groupName, ec2TagFilterArray){
+        const updateGroupCallParams = {
+            applicationName: appName,
+            currentDeploymentGroupName: groupName,
+            ec2TagFilters: ec2TagFilterArray,
+        };
+        return CodeDeploy.updateDeploymentGroup(updateGroupCallParams).promise();
+    };
+
+    static async deployDeploymentGroup(appName, groupName, deploymentRevision){
+        const deployParams = {
+            applicationName: appName,
+            deploymentGroupName: groupName,
+            revision:  deploymentRevision
+        };
+        console.log(`Starting deployment of ${appName} to ${groupName}...`);
+        return await CodeDeploy.createDeployment(deployParams).promise();
+    };
+
+    static waitForDeploymentSuccessful(deployment){
+        return CodeDeploy.waitFor("deploymentSuccessful", deployment).promise()
+    }
+
+    static async getAndSimplifyDeploymentErrors(failedDeployment){
+        const listInstData =
+            await CodeDeploy.listDeploymentInstances(failedDeployment).promise();
+
+        const getDepInstancesParams =
+            Object.assign({instanceIds: listInstData.instancesList}, failedDeployment);
+
+        const info = await CodeDeploy.batchGetDeploymentInstances(getDepInstancesParams).promise();
+
+        const failsByInstance =
+            info.instancesSummary
+                .filter(instSummary => instSummary.status = "Failed")
+                .map(instSummary => {
+                    const badEvents =
+                        instSummary.lifecycleEvents
+                            .filter(event => event.status != "Succeeded")
+
+                    return {
+                        InstanceId: instSummary.instanceId.split("/")[1],
+                        FailedEvents: badEvents
+                    }
+                });
+
+        const EC2StatusArray = await mxaws.statusEC2();
+
+        const simplifiedFailsByInstance = failsByInstance.map(failSummary => {
+            return {
+                InstanceName:
+                    (mxaws.getInstNameFromEC2Status(failSummary.InstanceId, EC2StatusArray)),
+                FailedEvents: failSummary.FailedEvents.map(event => {
+                    let retVal = {
+                        EventName: event.lifecycleEventName,
+                        EventStatus: event.status
+                    };
+                    if (event.status == "Failed"){
+                        retVal.StartTime = event.startTime;
+                        retVal.EndTime = event.endTime;
+                        retVal.ErrorCode = event.diagnostics.errorCode;
+                        retVal.FailedScript = event.diagnostics.scriptName;
+                        retVal.FailMessage = event.diagnostics.message;
+                        retVal.LogTail = event.diagnostics.logTail.split("\n");
+                    }
+                    return retVal;
+                })
+            };
+        });
+        return simplifiedFailsByInstance;
+    }
+
+    static printSimplifiedDeploymentErrors(simplifiedFailsByInstance){
+        console.log("Deployment Errors:");
+        simplifiedFailsByInstance.forEach(err => {
+            console.log(`Instance: ${err.InstanceName}`);
+            console.log("------------------------------")
+            err.FailedEvents.forEach(event => console.log(event));
+        });
+    }
+
+}
 
 return exports;
