@@ -192,6 +192,7 @@ const mxaws = exports.mxaws = class mxaws {
 };
 
 const mxCodeDeploy = exports.mxCodeDeploy = class mxCodeDeploy {
+    //Note to whoever may refactor this - this has one call to mxaws.statusEC2();
 
     static getDeploymentGroupData(appName, groupName){
         const getGroupParams = {

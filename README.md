@@ -20,7 +20,11 @@ npm install -s massexchange/mxaws
 3.) Require it. NOTE: At the point of being "required" is when the aforementioned environment variables are read. If they are missing, mxaws WILL call process.exit(1), triggering a hard and immediate exit.
 
 ```js
-const {mxaws} = require("mxaws");
+const {mxaws} = require("mxaws"); //For EC2 and RDS functionality, as of Sept 7.
+                                  //There is an internal JIRA issue for segregating them
+const {mxCodeDeploy} = require("mxaws"); //For some light CodeDeploy functionality.
 ```
 
-4.) Start issuing aws calls! This libary is definitely still a work in progress, but will be growing rapidly. I'd document further, but the code itself is made to be as simple as possible. If you need to know what functionality this exposes currently, read **mxaws.js**. At the time of writing, it handles a lot of EC2 and RDS state operations, like shutoffs, resizes, waits, status checks, and power-ons. In the short term, there should be some CodeDeploy functionality added pretty soon -- just a matter of factoring it out of some internal code.
+4.) Start issuing aws calls! This libary is definitely still a work in progress, but will be growing rapidly. I'd document further, but the code itself is made to be as simple as possible. If you need to know what functionality this exposes currently, read **mxaws.js**. At the time of writing, it handles a lot of EC2 and RDS state operations, like shutoffs, resizes, waits, status checks, and power-ons. As of
+Sept 7, 2017, also can be used to trigger CodeDeploy deployments, as well as
+collecting errors in said deployments.
