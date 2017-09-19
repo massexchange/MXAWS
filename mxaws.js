@@ -1,23 +1,29 @@
 const AWS   = require("aws-sdk");
 const nconf = require("nconf");
 
-const awsId     = nconf.env().get("awsAccessKeyId");
-const awsKey    = nconf.env().get("awsSecretAccessKey");
-const awsRegion = nconf.env().get("awsRegion");
+const awsId  =
+    nconf.env().get("awsAccessKeyId") | nconf.env().get("AWS_ACCESS_KEY_ID");
 
-if (!(awsId && awsKey && awsRegion)){
-    console.log("AWS Credential Environment Variables are missing or malformed.");
-    console.log(`Please ensure that "awsAccessKeyId", "awsSecretAccessKey", and "awsRegion"`);
-    console.log("are defined correctly wherever you define your environment variables.");
-    console.log("Exiting.");
-    process.exit(1);
-}
+const awsKey =
+    nconf.env().get("awsSecretAccessKey") | nconf.env().get("AWS_SECRET_ACCESS_KEY");
 
-const AWSConfig = new AWS.Config({
-    accessKeyId: awsId,
-    secretAccessKey: awsKey,
-    region: awsRegion
-});
+const awsRegion =
+    nconf.env().get("awsRegion") | nconf.env().get("AWS_REGION");
+
+const usingEnvVars = (awsId && awsKey && awsRegion);
+
+if (!usingEnvVars) {
+  console.log("MXAWS: AWS IAM Credential Env Variables Not Detected.");
+  console.log("MXAWS: Falling back to IAM Roles/other automatic credentials.")
+};
+
+const AWSConfig = usingEnvVars
+  ? new AWS.Config({
+      accessKeyId: awsId,
+      secretAccessKey: awsKey,
+      region: awsRegion
+  })
+  : new AWS.Config();
 
 const EC2 = new AWS.EC2(AWSConfig);
 const RDS = new AWS.RDS(AWSConfig);
@@ -192,8 +198,8 @@ const mxaws = exports.mxaws = class mxaws {
 };
 
 const mxCodeDeploy = exports.mxCodeDeploy = class mxCodeDeploy {
-    //Note to whoever may refactor this - this has one call to mxaws.statusEC2();
-
+    //Note to whoever may refactor this - this has one call to mxaws.statusEC2()
+    //and mxaws.getInstNameFromEC2Status()
     static getDeploymentGroupData(appName, groupName){
         const getGroupParams = {
             applicationName: appName,
