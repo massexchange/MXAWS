@@ -1,3 +1,5 @@
+require("babel-polyfill");
+
 const AWS   = require("aws-sdk");
 const nconf = require("nconf");
 

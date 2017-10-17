@@ -2,13 +2,28 @@
   "name": "mxaws",
   "version": "1.0.0",
   "description": "A collection of wrappers simplifying calls from the AWS JS SDK",
-  "main": "mxaws.js",
+  "main": "./dist/mxaws.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "babel src -d dist",
+    "prepare": "npm run build",
+    "clean": "rm -rf ./node_modules"
   },
   "author": "Frank Camilleri",
   "dependencies": {
     "aws-sdk": "^2.92.0",
-    "nconf": "^0.8.4"
+    "nconf": "^0.8.4",
+    "babel-polyfill": "^6.26.0"
+  },
+  "babel": {
+    "presets": [
+      "env"
+    ],
+    "parserOpts": {
+      "allowReturnOutsideFunction": true
+    }
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1"
   }
 }

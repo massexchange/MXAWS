@@ -33,3 +33,7 @@ node_modules
 static/lib
 .DS_Store
 *.pem
+
+#Distribution Directory
+#Only for publishing to NPM
+dist
