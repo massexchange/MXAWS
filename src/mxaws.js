@@ -4,13 +4,13 @@ const AWS   = require("aws-sdk");
 const nconf = require("nconf");
 
 const awsId  =
-    nconf.env().get("awsAccessKeyId") | nconf.env().get("AWS_ACCESS_KEY_ID");
+    nconf.env().get("awsAccessKeyId") || nconf.env().get("AWS_ACCESS_KEY_ID");
 
 const awsKey =
-    nconf.env().get("awsSecretAccessKey") | nconf.env().get("AWS_SECRET_ACCESS_KEY");
+    nconf.env().get("awsSecretAccessKey") || nconf.env().get("AWS_SECRET_ACCESS_KEY");
 
 const awsRegion =
-    nconf.env().get("awsRegion") | nconf.env().get("AWS_REGION");
+    nconf.env().get("awsRegion") || nconf.env().get("AWS_REGION");
 
 const usingEnvVars = (awsId && awsKey && awsRegion);
 
