@@ -17,7 +17,7 @@ npm install -s massexchange/mxaws
     - `awsSecretAccessKey`: the credential's key
     - `awsRegion`: the aws region being operated on.
 
-3.) Require it. NOTE: At the point of being "required" is when the aforementioned environment variables are read. If they are missing, mxaws WILL call process.exit(1), triggering a hard and immediate exit.
+3.) Require it. NOTE: At the point of being "required" is when the aforementioned environment variables are read. If they are missing, mxaws will defer to any IAM roles or other avenues of automatic configuration, as described in the JS AWS-SDK docs.
 
 ```js
 const {mxaws} = require("mxaws"); //For EC2 and RDS functionality, as of Sept 7.
