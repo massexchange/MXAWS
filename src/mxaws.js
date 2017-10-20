@@ -122,6 +122,14 @@ const mxaws = exports.mxaws = class mxaws {
         return RDS.rebootDBInstance({"DBInstanceIdentifier":identifier}).promise();
     }
 
+    static startRDSInstance(identifier){
+        return RDS.startDBInstance({"DBInstanceIdentifier":identifier}).promise();
+    }
+
+    static stopRDSInstance(identifier){
+        return RDS.stopDBInstance({"DBInstanceIdentifier":identifier}).promise();
+    }
+
     static async resizeEC2Instance(instanceId, size){
 
         const powerParams = {"InstanceIds": [instanceId]};
