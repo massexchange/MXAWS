@@ -2,6 +2,7 @@ require("babel-polyfill");
 
 const AWS   = require("aws-sdk");
 const nconf = require("nconf");
+const NetcatClient = require("netcat/client");
 
 const awsId  =
     nconf.env().get("awsAccessKeyId") || nconf.env().get("AWS_ACCESS_KEY_ID");
@@ -43,10 +44,50 @@ const mxaws = exports.mxaws = class mxaws {
         return EC2.waitFor("instanceRunning",{"InstanceIds":ec2InstanceIdArray}).promise();
     }
 
-    //TODO: There may be a bug here due to an possible extremely recent change in the API
+    //NOTE: RDS waits are unreliable. AWS will call a DB available a few seconds
+    //to a full minute too early when changing state to available.
+    //If your security rules allow, use waitForInstanceToAcceptConnections instead.
     static waitForRDSInstanceAvailable(identifier){
         //yes you read that right. dB. little d big B.
         return RDS.waitFor("dBInstanceAvailable",{"DBInstanceIdentifier":identifier}).promise();
+    }
+
+    //possible TODO: Add ability to proxy through a "bastion"
+    static async waitForInstanceToAcceptConnections(address, port, totalTimeLimitMinutes=20){
+        const nc = new NetcatClient();
+        var good = false;
+        //retries are every 30 seconds, so multiply by two for minutes.
+        var retryLimit = 2*totalTimeLimitMinutes;
+
+        nc.addr(address).port(port).connect()
+
+        .on("error", (err) => {
+            throw new Error(err);
+        })
+
+        .on("data", async () => {
+            console.log("Connection Successful!");
+            good = true;
+            await nc.close();
+        })
+
+        .on("close", async () => {
+
+            if (good){
+                console.log(`${address}:${port} is reachable.`);
+                return;
+            }
+
+            if (retryLimit == 0) {
+                //console.log("Retry limit reached. Connection failed.");
+                throw new Error("Retry limit reached. Connection failed.");
+            }
+
+            console.log(`Retrying in 30 seconds. ${--retryLimit} attempts remaining.`);
+            await this.delay(30);
+            nc.connect();
+        });
+
     }
 
     static getEC2InstancesByEnvironment(environmentNameArray){

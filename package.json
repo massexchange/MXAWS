@@ -11,8 +11,9 @@
   "author": "Frank Camilleri",
   "dependencies": {
     "aws-sdk": "^2.92.0",
+    "babel-polyfill": "^6.26.0",
     "nconf": "^0.8.4",
-    "babel-polyfill": "^6.26.0"
+    "netcat": "^1.3.2"
   },
   "babel": {
     "presets": [
