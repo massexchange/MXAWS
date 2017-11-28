@@ -3,6 +3,7 @@ require("babel-polyfill");
 const AWS   = require("aws-sdk");
 const nconf = require("nconf");
 const NetcatClient = require("netcat/client");
+const mysql = require("mysql");
 
 const awsId  =
     nconf.env().get("awsAccessKeyId") || nconf.env().get("AWS_ACCESS_KEY_ID");
@@ -87,7 +88,27 @@ const mxaws = exports.mxaws = class mxaws {
             await this.delay(30);
             nc.connect();
         });
+    }
 
+    static waitForDBLoginSuccess(dbName, hostName, port, username, password){
+        const connection = mysql.createConnection({
+            database: dbName,
+            host: hostName,
+            port: port,
+            user: username,
+            password: password
+        });
+        var good = false;
+        try{
+            connection.connect();
+        }
+        catch(err){
+            console.log("CAUGHT!")
+        }
+        // connection.connect((err)=> {
+        //     if (err) console.log(err);
+        //     console.log("shits good.")
+        // });
     }
 
     static getEC2InstancesByEnvironment(environmentNameArray){
