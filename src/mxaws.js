@@ -3,7 +3,7 @@ require("babel-polyfill");
 const AWS   = require("aws-sdk");
 const nconf = require("nconf");
 const NetcatClient = require("netcat/client");
-const mysql = require("mysql2");
+const mysql = require("mysql2/promise");
 
 const awsId  =
     nconf.env().get("awsAccessKeyId") || nconf.env().get("AWS_ACCESS_KEY_ID");
@@ -47,13 +47,41 @@ const mxaws = exports.mxaws = class mxaws {
 
     //NOTE: RDS waits are unreliable. AWS will call a DB available a few seconds
     //to a full minute too early when changing state to available.
-    //If your security rules allow, use waitForInstanceToAcceptConnections instead.
+    //Use waitForDBLoginSuccess instead.
     static waitForRDSInstanceAvailable(identifier){
         //yes you read that right. dB. little d big B.
         return RDS.waitFor("dBInstanceAvailable",{"DBInstanceIdentifier":identifier}).promise();
     }
 
+    static async waitForDBLoginSuccess(dbName, hostName, port, username, password, retrySeconds=30, retryAttempts=40){
+        var numRetries = retryAttempts; //cause purity or something
+        var notConnected = true;
+        console.log("Checking if DB is active...")
+        while (notConnected && numRetries > 0) {
+            try {
+                var connection = await mysql.createConnection({
+                    database: dbName,
+                    host: hostName,
+                    port: port,
+                    user: username,
+                    password: password
+                });
+                await connection.end();
+                notConnected = false;
+            } catch (err) {
+                console.log(`Attempt failed. Retrying in ${retrySeconds} second(s).`);
+                console.log(`${--numRetries} retry attempt(s) remaining.`)
+                await this.delay(retrySeconds)
+            }
+        }
+        if (numRetries <= 0)
+            return Promise.reject("Acquiring a DB connection took too long.");
+        else console.log("DB connection successful.");
+    }
+
     //possible TODO: Add ability to proxy through a "bastion"
+    //NOTE: I don't use this, I kinda wrote it by mistake and decided to leave it
+    //Might want it at some point?
     static async waitForInstanceToAcceptConnections(address, port, totalTimeLimitMinutes=20){
         const nc = new NetcatClient();
         var good = false;
@@ -90,26 +118,6 @@ const mxaws = exports.mxaws = class mxaws {
         });
     }
 
-    static waitForDBLoginSuccess(dbName, hostName, port, username, password){
-        const connection = mysql.createConnection({
-            database: dbName,
-            host: hostName,
-            port: port,
-            user: username,
-            password: password
-        });
-        var good = false;
-        try{
-            connection.connect();
-        }
-        catch(err){
-            console.log("CAUGHT!")
-        }
-        // connection.connect((err)=> {
-        //     if (err) console.log(err);
-        //     console.log("shits good.")
-        // });
-    }
 
     static getEC2InstancesByEnvironment(environmentNameArray){
         if (!environmentNameArray       ||
