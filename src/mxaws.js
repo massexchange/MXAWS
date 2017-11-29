@@ -3,7 +3,7 @@ require("babel-polyfill");
 const AWS   = require("aws-sdk");
 const nconf = require("nconf");
 const NetcatClient = require("netcat/client");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 
 const awsId  =
     nconf.env().get("awsAccessKeyId") || nconf.env().get("AWS_ACCESS_KEY_ID");
