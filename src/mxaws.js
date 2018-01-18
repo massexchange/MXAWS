@@ -32,6 +32,7 @@ const AWSConfig = usingEnvVars
 const EC2 = new AWS.EC2(AWSConfig);
 const RDS = new AWS.RDS(AWSConfig);
 const CodeDeploy = new AWS.CodeDeploy(AWSConfig);
+const DynamoDB = new AWS.DynamoDB(AWSConfig);
 
 const mxaws = exports.mxaws = class mxaws {
 
@@ -367,6 +368,34 @@ const mxCodeDeploy = exports.mxCodeDeploy = class mxCodeDeploy {
             console.log("------------------------------")
             err.FailedEvents.forEach(event => console.log(event));
         });
+    }
+
+}
+
+const mxDynamoDB = exports.mxDynamoDB = class mxDynamoDB {
+    static listTables(){
+        return DynamoDB.listTables({}).promise();
+    }
+
+    static putItem(item, tableName){
+        return DynamoDB.putItem({
+            "Item": item,
+            "TableName":tableName
+        }).promise();
+    }
+
+    static getItem(key, tableName){
+        return DynamoDB.getItem({
+            "Key": key,
+            "TableName":tableName
+        }).promise();
+    }
+
+    static deleteItem(key, tableName){
+        return DynamoDB.deleteItem({
+            "Key": key,
+            "TableName":tableName
+        }).promise();
     }
 
 }
