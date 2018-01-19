@@ -398,6 +398,12 @@ const mxDynamoDB = exports.mxDynamoDB = class mxDynamoDB {
         }).promise();
     }
 
+    static scanTable(tableName){
+        return DynamoDB.scan({
+            "TableName": tableName
+        }).promise();
+    }
+
 }
 
 return exports;
