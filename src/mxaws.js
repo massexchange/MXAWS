@@ -54,7 +54,16 @@ const mxaws = exports.mxaws = class mxaws {
         return RDS.waitFor("dBInstanceAvailable",{"DBInstanceIdentifier":identifier}).promise();
     }
 
-    static async waitForDBLoginSuccess(dbName, hostName, port, username, password, retrySeconds=30, retryAttempts=40){
+    static async waitForDBLoginSuccess(
+        dbName,
+        hostName,
+        port,
+        username,
+        password,
+        retrySeconds=30,
+        retryAttempts=40,
+        testTable="Users"
+    ){
         var numRetries = retryAttempts; //cause purity or something
         var notConnected = true;
         console.log("Checking if DB is active...")
@@ -67,6 +76,8 @@ const mxaws = exports.mxaws = class mxaws {
                     user: username,
                     password: password
                 });
+                //can we query successfully?
+                await connection.query(`SELECT * FROM ${dbName}.${testTable} LIMIT 1`);
                 await connection.end();
                 notConnected = false;
             } catch (err) {
