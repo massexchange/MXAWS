@@ -81,12 +81,12 @@ const mxaws = exports.mxaws = class mxaws {
                 //can we query successfully?
                 await connection.query(`SELECT 1`);
                 await connection.end();
-                return true
+                return true;
             } catch (err) {
-                return false
+                return false;
             }
         }
-        console.log("Checking if database is ready...")
+        console.log("Checking if database is ready...");
         while (!connected && numRetries > 0) {
             if (await attemptDBConnection()){ //Debounced repeated check.
                 console.log("Initial connection successful. Doublechecking in 30 seconds.")
@@ -97,7 +97,7 @@ const mxaws = exports.mxaws = class mxaws {
             if (!connected) {
                 console.log(`Attempt failed. Retrying in ${retrySeconds} second(s).`);
                 console.log(`${--numRetries} retry attempt(s) remaining.`)
-                await this.delay(retrySeconds)
+                await this.delay(retrySeconds);
             }
         }
 
