@@ -61,14 +61,16 @@ const mxaws = exports.mxaws = class mxaws {
         username,
         password,
         retrySeconds=30,
-        retryAttempts=40,
-        testTable="Users"
+        retryAttempts=40
     ){
         var numRetries = retryAttempts; //cause purity or something
-        var notConnected = true;
-        console.log("Checking if DB is active...")
-        while (notConnected && numRetries > 0) {
+        var connected = false;
+        const dbIdentifier = hostName.split(".")[0];
+
+        //async closure - returns true if connects, false otherwise.
+        const attemptDBConnection = async () => {
             try {
+                await this.waitForRDSInstanceAvailable(dbIdentifier);
                 var connection = await mysql.createConnection({
                     database: dbName,
                     host: hostName,
@@ -77,15 +79,28 @@ const mxaws = exports.mxaws = class mxaws {
                     password: password
                 });
                 //can we query successfully?
-                await connection.query(`SELECT * FROM ${dbName}.${testTable} LIMIT 1`);
+                await connection.query(`SELECT 1`);
                 await connection.end();
-                notConnected = false;
+                return true
             } catch (err) {
+                return false
+            }
+        }
+        console.log("Checking if database is ready...")
+        while (!connected && numRetries > 0) {
+            if (await attemptDBConnection()){ //Debounced repeated check.
+                console.log("Initial connection successful. Doublechecking in 30 seconds.")
+                await this.delay(30);
+                connected = await attemptDBConnection();
+            }
+
+            if (!connected) {
                 console.log(`Attempt failed. Retrying in ${retrySeconds} second(s).`);
                 console.log(`${--numRetries} retry attempt(s) remaining.`)
                 await this.delay(retrySeconds)
             }
         }
+
         if (numRetries <= 0)
             return Promise.reject("Acquiring a DB connection took too long.");
         else console.log("DB connection successful.");
