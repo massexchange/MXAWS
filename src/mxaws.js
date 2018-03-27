@@ -88,9 +88,10 @@ const mxaws = exports.mxaws = class mxaws {
         }
         console.log("Checking if database is ready...");
         while (!connected && numRetries > 0) {
-            if (await attemptDBConnection()){ //Debounced repeated check.
-                console.log("Initial connection successful. Doublechecking in 30 seconds.")
-                await this.delay(30);
+            console.log("Waiting for database to become ready...")
+            if (await attemptDBConnection()){ //Double check and make sure connection is stable.
+                console.log("Initial connection successful. Doublechecking in 20 seconds.")
+                await this.delay(20);
                 connected = await attemptDBConnection();
             }
 
